@@ -12,6 +12,7 @@ namespace TestNinja.Mocking
     {
         //public IFileReader FileReader { get; set; }
         private IFileReader _fileReader;
+        private IVideoRepository _repository;
 
         //In production code, this constructor will be used. 
         //public VideoService()
@@ -27,10 +28,11 @@ namespace TestNinja.Mocking
         //}
 
         //Both constructors can be combined into one using.
-        public VideoService(IFileReader fileReader = null)
+        public VideoService(IFileReader fileReader = null, IVideoRepository repository = null)
         {
             //_fileReader= new FileReader();
             _fileReader = fileReader ?? new FileReader(); //If fileReader is null, then make a new fileReader object. Otherwise, take the one already supplied via the parameters.
+            _repository = repository ?? new VideoRepository();
 
         }
         public string ReadVideoTitle()
@@ -48,19 +50,11 @@ namespace TestNinja.Mocking
         public string GetUnprocessedVideosAsCsv()
         {
             var videoIds = new List<int>();
-            
-            using (var context = new VideoContext())
-            {
-                var videos = 
-                    (from video in context.Videos
-                    where !video.IsProcessed
-                    select video).ToList();
-                
+            var videos = _repository.GetUnprocessedVideos();
                 foreach (var v in videos)
                     videoIds.Add(v.Id);
 
                 return String.Join(",", videoIds);
-            }
         }
     }
 
